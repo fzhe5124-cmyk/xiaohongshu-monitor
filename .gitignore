@@ -5,3 +5,4 @@
 .browser_data/
 .DS_Store
 *.pkl
+_test_login.py

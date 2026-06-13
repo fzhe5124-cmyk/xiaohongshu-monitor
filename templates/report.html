@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分析报告 - XHS 竞品监控</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;700&family=DM+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,600;6..72,700&family=Noto+Serif+SC:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07070b;
+            --surface: #111116;
+            --surface2: #1a1a22;
+            --border: #2a2a38;
+            --text: #eeeeee;
+            --text2: #9494a8;
+            --text3: #5c5c70;
+            --accent: #ff4d4d;
+            --radius: 14px;
+            --radius-sm: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        body::after {
+            content: ''; position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+            pointer-events: none; z-index: 0;
+        }
+        .glow {
+            position: fixed; top: -20%; right: -10%; width: 60%; height: 70%;
+            background: radial-gradient(ellipse, rgba(255,77,77,0.05) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .top-bar {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 18px 28px;
+            max-width: 860px; margin: 0 auto 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-wrap: wrap; gap: 12px;
+            position: relative; z-index: 1;
+            animation: rise 0.6s ease-out;
+        }
+        .top-bar h2 {
+            font-family: 'Newsreader', 'Noto Serif SC', serif;
+            font-size: 17px; font-weight: 600; color: var(--text);
+            letter-spacing: -0.3px;
+        }
+        .top-bar .actions { display: flex; gap: 10px; }
+        .top-bar .actions a {
+            padding: 10px 20px; border-radius: var(--radius-sm);
+            text-decoration: none;
+            font-family: 'Archivo', sans-serif;
+            font-size: 12px; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; transition: all 0.3s;
+        }
+        .btn-back { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+        .btn-back:hover { color: var(--text); background: var(--surface3); }
+        .btn-download { background: var(--accent); color: white; }
+        .btn-download:hover { background: #ff3333; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,77,77,0.3); }
+
+        .container { max-width: 860px; margin: 0 auto; position: relative; z-index: 1; }
+        .report-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 40px 44px;
+            animation: rise 0.6s ease-out 0.1s both;
+        }
+
+        .report-content h1 {
+            font-family: 'Newsreader', 'Noto Serif SC', serif;
+            font-size: 26px; font-weight: 700; color: var(--text);
+            letter-spacing: -0.5px; margin-bottom: 16px;
+            padding-bottom: 14px; border-bottom: 2px solid var(--accent);
+        }
+        .report-content h2 {
+            font-family: 'Newsreader', 'Noto Serif SC', serif;
+            font-size: 20px; font-weight: 600; color: var(--text);
+            margin-top: 36px; margin-bottom: 14px; letter-spacing: -0.3px;
+        }
+        .report-content h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 16px; font-weight: 600; color: var(--text);
+            margin-top: 24px; margin-bottom: 10px;
+        }
+        .report-content p {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px; font-weight: 300; line-height: 1.9;
+            color: var(--text2); margin-bottom: 14px;
+        }
+        .report-content ul, .report-content ol { margin: 10px 0 18px 24px; line-height: 1.9; color: var(--text2); }
+        .report-content li { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px; font-weight: 300; margin-bottom: 6px; }
+        .report-content blockquote {
+            border-left: 3px solid var(--accent); padding: 12px 20px;
+            margin: 16px 0; background: var(--surface2);
+            color: var(--text2); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-weight: 300;
+        }
+        .report-content strong { font-weight: 600; color: var(--text); }
+        .report-content hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+        .report-content code {
+            background: var(--surface2); padding: 2px 8px; border-radius: 4px;
+            font-family: 'DM Mono', monospace; font-size: 13px; color: var(--accent);
+        }
+
+        .error-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 80px; text-align: center;
+            animation: rise 0.6s ease-out;
+        }
+        .error-card .icon { font-size: 48px; margin-bottom: 16px; }
+        .error-card h2 { font-family: 'Newsreader', 'Noto Serif SC', serif; font-size: 22px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+        .error-card p { color: var(--text2); margin-bottom: 24px; }
+        .error-card .btn {
+            display: inline-block; padding: 14px 36px; background: var(--accent); color: white;
+            border-radius: var(--radius-sm); text-decoration: none;
+            font-family: 'Archivo', sans-serif; font-size: 13px; font-weight: 700;
+            letter-spacing: 2px; text-transform: uppercase; transition: all 0.3s;
+        }
+        .error-card .btn:hover { background: #ff3333; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(255,77,77,0.3); }
+
+        @media (max-width: 600px) {
+            .report-card { padding: 24px 20px; }
+            .top-bar { flex-direction: column; align-items: flex-start; padding: 16px 20px; }
+            .top-bar .actions { width: 100%; }
+            .top-bar .actions a { flex: 1; text-align: center; }
+            body { padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    {% if error %}
+    <div class="container">
+        <div class="error-card">
+            <div class="icon">😕</div>
+            <h2>分析出错</h2>
+            <p>{{ error }}</p>
+            <a href="/" class="btn">返回首页</a>
+        </div>
+    </div>
+    {% else %}
+    <div class="top-bar">
+        <h2>📊 {{ keyword }} — 竞品分析报告</h2>
+        <div class="actions">
+            <a href="/" class="btn-back">← 新分析</a>
+            <a href="{{ url_for('report_raw', order_id=request.path.split('/')[-1]) }}" class="btn-download" download>下载 Markdown</a>
+        </div>
+    </div>
+    <div class="container">
+        <div class="report-card">
+            <div class="report-content">
+                {{ report_html | safe }}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</body>
+</html>

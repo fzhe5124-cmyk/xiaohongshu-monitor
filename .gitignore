@@ -1,0 +1,7 @@
+﻿__pycache__/
+*.pyc
+.env
+.cookies/
+.browser_data/
+.DS_Store
+*.pkl

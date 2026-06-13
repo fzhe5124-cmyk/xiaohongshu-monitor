@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XHS 竞品监控</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;500;700;900&family=DM+Mono:wght@400;500&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600;6..72,700&family=Noto+Serif+SC:wght@400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #07070b;
+            --surface: #111116;
+            --surface2: #1a1a22;
+            --surface3: #24242e;
+            --border: #2a2a38;
+            --text: #eeeeee;
+            --text2: #9494a8;
+            --text3: #5c5c70;
+            --accent: #ff4d4d;
+            --accent2: #ff7a4d;
+            --accent-dim: rgba(255,77,77,0.1);
+            --green: #34d399;
+            --yellow: #fbbf24;
+            --blue: #60a5fa;
+            --radius: 14px;
+            --radius-sm: 8px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.025'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+        .glow-1 {
+            position: fixed; top: -20%; right: -10%; width: 60%; height: 70%;
+            background: radial-gradient(ellipse, rgba(255,77,77,0.06) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+        .glow-2 {
+            position: fixed; bottom: -15%; left: -5%; width: 50%; height: 60%;
+            background: radial-gradient(ellipse, rgba(96,165,250,0.04) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glowPulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,77,77,0.08); }
+            50% { box-shadow: 0 0 40px rgba(255,77,77,0.16); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .anim-rise { animation: rise 0.8s cubic-bezier(0.16,1,0.3,1) both; }
+        .anim-rise-d1 { animation: rise 0.8s cubic-bezier(0.16,1,0.3,1) 0.12s both; }
+        .anim-rise-d2 { animation: rise 0.8s cubic-bezier(0.16,1,0.3,1) 0.2s both; }
+        .anim-rise-d3 { animation: rise 0.8s cubic-bezier(0.16,1,0.3,1) 0.28s both; }
+        .anim-rise-d4 { animation: rise 0.8s cubic-bezier(0.16,1,0.3,1) 0.36s both; }
+
+        .navbar {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+            height: 68px; padding: 0 40px;
+            display: flex; align-items: center;
+            background: rgba(7,7,11,0.8); backdrop-filter: blur(24px);
+            border-bottom: 1px solid rgba(42,42,56,0.5);
+            animation: slideDown 0.6s ease-out;
+        }
+        .navbar .brand {
+            font-family: 'Archivo', sans-serif;
+            font-size: 15px; font-weight: 900; letter-spacing: 3px;
+            text-transform: uppercase; text-decoration: none; color: var(--text);
+            margin-right: 44px; position: relative;
+        }
+        .navbar .brand em { font-style: normal; color: var(--accent); }
+        .navbar .brand::after {
+            content: '';
+            position: absolute; right: -22px; top: 50%; transform: translateY(-50%);
+            width: 1px; height: 18px; background: var(--border);
+        }
+        .navbar .nav-links { display: flex; gap: 2px; flex: 1; }
+        .navbar .nav-links a {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 8px 20px; text-decoration: none;
+            color: var(--text2); font-size: 13px; font-weight: 500;
+            border-radius: 6px; transition: all 0.35s;
+            position: relative;
+        }
+        .navbar .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+        .navbar .nav-links a.active { color: var(--text); }
+        .navbar .nav-links a.active::after {
+            content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+            width: 16px; height: 2px; background: var(--accent); border-radius: 1px;
+        }
+        .navbar .nav-right { display: flex; align-items: center; gap: 20px; }
+        .navbar .nav-right a {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text3); text-decoration: none; font-size: 13px;
+            transition: color 0.3s;
+        }
+        .navbar .nav-right a:hover { color: var(--accent); }
+
+        .page {
+            display: none;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 92px 28px 60px;
+            position: relative; z-index: 1;
+        }
+        .page.active { display: block; }
+
+        .page-header { margin-bottom: 32px; }
+        .page-header .section-tag {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px; font-weight: 500; color: var(--accent);
+            letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .page-header h1 {
+            font-family: 'Newsreader', 'Noto Serif SC', serif;
+            font-size: 36px; font-weight: 600; color: var(--text);
+            letter-spacing: -0.5px; line-height: 1.2;
+        }
+        .page-header p {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px; font-weight: 300; color: var(--text2);
+            margin-top: 8px; line-height: 1.6;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 36px 40px;
+            position: relative;
+        }
+        .card-title {
+            font-family: 'Newsreader', 'Noto Serif SC', serif;
+            font-size: 20px; font-weight: 600; color: var(--text);
+            letter-spacing: -0.3px; margin-bottom: 4px;
+        }
+        .card-subtitle {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px; font-weight: 300; color: var(--text2); margin-bottom: 28px;
+        }
+
+        .form-group { margin-bottom: 22px; }
+        .form-group label {
+            font-family: 'DM Mono', monospace;
+            display: block; font-size: 11px; font-weight: 500;
+            color: var(--text3); letter-spacing: 2px; text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 16px 18px;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 15px; font-weight: 400; color: var(--text);
+            outline: none; transition: all 0.3s;
+        }
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-dim);
+        }
+        .form-group input::placeholder { font-weight: 300; color: #444; }
+        .hint { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 300; color: var(--text3); margin-top: 8px; }
+
+        .btn {
+            padding: 16px 36px;
+            background: var(--accent); color: white;
+            border: none; border-radius: var(--radius-sm);
+            font-family: 'Archivo', sans-serif;
+            font-size: 13px; font-weight: 700; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+            position: relative; overflow: hidden;
+        }
+        .btn::before {
+            content: '';
+            position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transition: left 0.6s;
+        }
+        .btn:hover::before { left: 100%; }
+        .btn:hover { background: #ff3333; transform: translateY(-3px); box-shadow: 0 12px 40px rgba(255,77,77,0.3); }
+        .btn:active { transform: translateY(0); }
+        .btn:disabled { background: var(--surface3); color: var(--text3); cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn-block { width: 100%; }
+
+        .error {
+            background: rgba(255,77,77,0.08); border: 1px solid rgba(255,77,77,0.2);
+            color: #ff4d4d; padding: 14px 18px; border-radius: var(--radius-sm);
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; margin-bottom: 22px;
+        }
+
+        .features { margin-top: 32px; padding-top: 28px; border-top: 1px solid var(--border); }
+        .features h3 {
+            font-family: 'DM Mono', monospace;
+            font-size: 11px; font-weight: 500; color: var(--text3);
+            letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px;
+        }
+        .features li {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px; font-weight: 300; color: var(--text2);
+            margin-bottom: 10px; list-style: none; padding-left: 24px; position: relative; line-height: 1.5;
+        }
+        .features li::before { content: '\2014'; position: absolute; left: 0; color: var(--accent); font-family: 'DM Mono', monospace; }
+
+        .loading { display: none; text-align: center; padding: 60px 20px; }
+        .loading .spinner {
+            width: 32px; height: 32px;
+            border: 2px solid var(--border); border-top: 2px solid var(--accent);
+            border-radius: 50%; animation: spin 0.7s linear infinite;
+            margin: 0 auto 20px;
+        }
+        .loading p { font-family: 'Plus Jakarta Sans', sans-serif; color: var(--text2); font-size: 14px; font-weight: 300; }
+
+        .pro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 12px; margin-top: 28px; }
+        .pro-card {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 24px;
+            cursor: pointer;
+            transition: all 0.45s cubic-bezier(0.16,1,0.3,1);
+            position: relative; overflow: hidden;
+        }
+        .pro-card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent2), transparent);
+            opacity: 0; transition: opacity 0.45s;
+        }
+        .pro-card:hover { border-color: rgba(255,77,77,0.3); transform: translateY(-6px); box-shadow: 0 16px 48px rgba(0,0,0,0.5); background: var(--surface); }
+        .pro-card:hover::before { opacity: 1; }
+        .pro-card .icon { font-size: 28px; margin-bottom: 14px; display: block; }
+        .pro-card h4 { font-family: 'Newsreader', 'Noto Serif SC', serif; font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; margin-bottom: 8px; }
+        .pro-card p { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; font-weight: 300; color: var(--text2); line-height: 1.7; }
+        .pro-card .tag {
+            font-family: 'DM Mono', monospace; display: inline-block;
+            padding: 3px 12px; border-radius: 20px;
+            font-size: 10px; font-weight: 500; letter-spacing: 0.5px;
+            text-transform: uppercase; margin-top: 14px;
+        }
+
+        .result-area { margin-top: 28px; padding-top: 28px; border-top: 1px solid var(--border); }
+        .result-area h3 { font-family: 'Newsreader', 'Noto Serif SC', serif; font-size: 17px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; margin-bottom: 18px; }
+        .result-block {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 18px 22px; margin-bottom: 10px;
+            font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 300;
+            line-height: 1.8; color: var(--text2);
+        }
+        .result-block strong { font-weight: 600; color: var(--text); }
+
+        .result-table { width: 100%; border-collapse: separate; border-spacing: 0; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; }
+        .result-table th, .result-table td { padding: 14px 16px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 300; color: var(--text2); }
+        .result-table th {
+            font-family: 'DM Mono', monospace; font-weight: 500; color: var(--text3);
+            font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+            background: rgba(255,255,255,0.02);
+        }
+        .result-table tr:last-child td { border-bottom: none; }
+        .result-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .level-badge {
+            font-family: 'Archivo', sans-serif; display: inline-block;
+            padding: 8px 28px; border-radius: 24px;
+            font-size: 16px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+        }
+        .level-red { background: rgba(255,77,77,0.12); color: #ff4d4d; border: 1px solid rgba(255,77,77,0.2); }
+        .level-yellow { background: rgba(251,191,36,0.12); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+        .level-green { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+
+        .progress-bar { height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; }
+        .progress-bar .fill { height: 100%; border-radius: 2px; transition: width 1s cubic-bezier(0.16,1,0.3,1); }
+        .fill-red { background: var(--accent); } .fill-yellow { background: var(--yellow); }
+        .fill-green { background: var(--green); } .fill-blue { background: var(--blue); }
+
+        .template-box {
+            background: #050508; border: 1px solid var(--border);
+            border-radius: var(--radius-sm); padding: 20px 24px;
+            font-family: 'DM Mono', monospace; font-size: 12px; line-height: 2;
+            white-space: pre-wrap; color: var(--text2); margin-top: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar { padding: 0 20px; }
+            .navbar .brand { font-size: 13px; letter-spacing: 2px; margin-right: 24px; }
+            .navbar .brand::after { right: -12px; height: 14px; }
+            .navbar .nav-links a { padding: 6px 12px; font-size: 12px; }
+            .page { padding: 80px 16px 40px; }
+            .page-header h1 { font-size: 28px; }
+            .card { padding: 24px 20px; }
+            .pro-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="glow-1"></div>
+    <div class="glow-2"></div>
+
+    <nav class="navbar">
+        <a href="/" class="brand"><em>XHS</em> MONITOR</a>
+        <div class="nav-links">
+            <a href="#" onclick="switchTab('content')" id="tab-content" class="active">内容分析</a>
+            <a href="#" onclick="switchTab('pro')" id="tab-pro">Pro 专业版</a>
+        </div>
+        <div class="nav-right"><a href="/logout">退出</a></div>
+    </nav>
+
+    <div class="page active" id="page-content">
+        <div class="page-header anim-rise">
+            <div class="section-tag">Content Intelligence</div>
+            <h1>内容分析</h1>
+            <p>输入关键词，AI 自动分析爆款规律并生成可执行的内容优化建议</p>
+        </div>
+        <div class="card anim-rise-d1" style="animation:rise 0.8s cubic-bezier(0.16,1,0.3,1) 0.12s both,glowPulse 4s ease-in-out 1.2s infinite;">
+            {% if error %}<div class="error">{{ error }}</div>{% endif %}
+            <form method="POST" action="/create-order" id="mainForm" onsubmit="showLoading()">
+                <div class="form-group">
+                    <label>Keyword / 关键词</label>
+                    <input type="text" id="keyword" name="keyword" placeholder="职场穿搭 / streetwear / kpop ..." required>
+                    <div class="hint">支持中文、英文及任意语言关键词</div>
+                </div>
+                <button type="submit" class="btn btn-block" id="submitBtn">生成报告</button>
+            </form>
+            <div class="loading" id="loading"><div class="spinner"></div><p>正在分析...</p></div>
+            <div class="features">
+                <h3>报告内容</h3>
+                <ul>
+                    <li>本周热门话题 TOP5</li>
+                    <li>爆款标题规律分析（字数、emoji、关键词）</li>
+                    <li>5 条可执行的内容优化建议</li>
+                    <li>数据亮点与下周行动建议</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pro -->
+    <div class="page" id="page-pro">
+        <div class="page-header anim-rise">
+            <div class="section-tag">Professional Suite</div>
+            <h1>Pro 专业版</h1>
+            <p>五大竞品分析工具 · 一站式深度洞察</p>
+        </div>
+        <div class="card anim-rise-d1">
+            <div class="pro-grid">
+                <div class="pro-card anim-rise-d2" onclick="runPro('dark_horse',document.getElementById('pro-keyword').value)">
+                    <span class="icon">🐴</span>
+                    <h4>黑马账号识别</h4>
+                    <p>发现低粉高潜力的新账号，粉丝 &lt; 5000、注册 &lt; 6 个月、爆款 ≥ 2 条</p>
+                    <span class="tag" style="background:rgba(255,77,77,0.1);color:#ff4d4d;">新账号挖掘</span>
+                </div>
+                <div class="pro-card anim-rise-d2" onclick="runPro('deconstruct',document.getElementById('pro-keyword').value)">
+                    <span class="icon">🔬</span>
+                    <h4>爆款结构拆解</h4>
+                    <p>TOP3 高赞笔记逐篇拆解：开头策略、内容分布、互动钩子、结尾模板</p>
+                    <span class="tag" style="background:rgba(251,191,36,0.1);color:#fbbf24;">可填空模板</span>
+                </div>
+                <div class="pro-card anim-rise-d3" onclick="runPro('trend',document.getElementById('pro-keyword').value)">
+                    <span class="icon">📈</span>
+                    <h4>热点预警系统</h4>
+                    <p>检测发布增速、多账号集中度、点赞异动，输出红 / 黄 / 绿预警</p>
+                    <span class="tag" style="background:rgba(255,77,77,0.1);color:#ff4d4d;">实时热点</span>
+                </div>
+                <div class="pro-card anim-rise-d3" onclick="runPro('gap',document.getElementById('pro-keyword').value)">
+                    <span class="icon">🧩</span>
+                    <h4>差异化缺口分析</h4>
+                    <p>从现有内容中发现蓝海机会，AI 生成可执行的差异化方向</p>
+                    <span class="tag" style="background:rgba(96,165,250,0.1);color:#60a5fa;">蓝海机会</span>
+                </div>
+                <div class="pro-card anim-rise-d4" onclick="runPro('biz',document.getElementById('pro-keyword').value)">
+                    <span class="icon">💼</span>
+                    <h4>商业模式拆解</h4>
+                    <p>检测带货 / 私域 / 广告 / 知识付费占比，输出策略总结与机会点</p>
+                    <span class="tag" style="background:rgba(52,211,153,0.1);color:#34d399;">变现分析</span>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:28px;">
+                <label>Keyword / 关键词</label>
+                <input type="text" id="pro-keyword" placeholder="输入关键词开始分析" value="职场穿搭">
+                <div class="hint">点击上方功能卡片开始分析</div>
+            </div>
+        </div>
+        <div id="pro-result" style="display:none;margin-top:24px;"></div>
+    </div>
+
+    <script>
+        function switchTab(n){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-links a').forEach(a=>a.classList.remove('active'));document.getElementById('page-'+n).classList.add('active');document.getElementById('tab-'+n).classList.add('active');}
+        function showLoading(){document.getElementById('loading').style.display='block';document.getElementById('submitBtn').disabled=true;}
+
+        async function runPro(func,keyword){
+            if(!keyword){alert('请输入关键词');return;}
+            const div=document.getElementById('pro-result');div.style.display='block';
+            div.innerHTML='<div class="card" style="text-align:center;padding:80px;"><div class="spinner" style="margin:0 auto 20px;width:32px;height:32px;border:2px solid var(--border);border-top:2px solid var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><p style="font-family:Plus Jakarta Sans,sans-serif;color:var(--text2);font-size:14px;">分析中...</p></div>';
+            try{
+                const r=await fetch('/api/pro/'+func,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'keyword='+encodeURIComponent(keyword)});
+                const d=await r.json();
+                if(d.error){div.innerHTML='<div class="card"><div class="error">'+d.error+'</div></div>';return;}
+                if(func==='dark_horse')renderDarkHorse(d,div);else if(func==='deconstruct')renderDeconstruct(d,div);else if(func==='trend')renderTrend(d,div);else if(func==='gap')renderGap(d,div);else if(func==='biz')renderBiz(d,div);
+            }catch(e){div.innerHTML='<div class="card"><div class="error">请求失败: '+e.message+'</div></div>';}
+        }
+
+        function renderDarkHorse(d,div){
+            let h='<div class="card anim-rise"><div class="card-title">🐴 黑马账号识别</div><div class="card-subtitle">'+d.keyword+' · 扫描 '+d.total_notes+' 条笔记</div>';
+            if(!d.accounts||!d.accounts.length)h+='<div class="error">未发现符合条件的黑马账号</div>';
+            else{
+                h+='<table class="result-table"><tr><th>账号</th><th>粉丝</th><th>注册</th><th>爆款</th><th>均赞</th><th style="text-align:right;">潜力分</th></tr>';
+                d.accounts.forEach(a=>{h+='<tr><td><strong>'+a.author_name+'</strong></td><td>'+a.followers+'</td><td>'+a.reg_days+'天</td><td>'+a.hot_notes+'/'+a.total_notes+'</td><td>'+a.avg_likes+'</td><td style="text-align:right;color:var(--accent);font-weight:600;">'+a.potential_score+'</td></tr>';});
+                h+='</table>';
+            }
+            h+='</div>';div.innerHTML=h;
+        }
+
+        function renderDeconstruct(d,div){
+            let h='<div class="card anim-rise"><div class="card-title">🔬 爆款结构拆解</div><div class="card-subtitle">'+d.keyword+'</div>';
+            if(!d.results||!d.results.length)h+='<div class="error">无数据</div>';
+            else d.results.forEach((r,i)=>{
+                h+='<div class="result-area"><h3>#'+(i+1)+' '+r.title+' <span style="font-weight:300;color:var(--text3);">'+r.likes+'赞</span></h3>';
+                h+='<div class="result-block"><strong>开头策略：</strong>'+r.opening_strategy+'<br><span style="color:var(--text3);font-size:13px;">"'+r.opening_excerpt+'"</span></div>';
+                h+='<div class="result-block"><strong>内容分布：</strong>干货 '+r.content_distribution['干货']+'% &nbsp;|&nbsp; 情绪 '+r.content_distribution['情绪']+'% &nbsp;|&nbsp; 场景 '+r.content_distribution['场景']+'%</div>';
+                if(r.interaction_hooks&&r.interaction_hooks.length)h+='<div class="result-block"><strong>互动钩子：</strong><br>'+r.interaction_hooks.map(x=>'— '+x).join('<br>')+'</div>';
+                h+='<div class="result-block"><strong>结尾策略：</strong>'+r.ending_strategy+'<br><span style="color:var(--text3);font-size:13px;">"'+r.ending_excerpt+'"</span></div>';
+                h+='<div class="template-box">'+r.template+'</div></div>';
+            });
+            h+='</div>';div.innerHTML=h;
+        }
+
+        function renderTrend(d,div){
+            let h='<div class="card anim-rise"><div class="card-title">📈 热点预警系统</div><div class="card-subtitle">'+d.keyword+' · 综合评分 '+d.total_score+'/300</div>';
+            h+='<div style="text-align:center;padding:28px 0 24px;"><span class="level-badge level-'+d.level+'">'+d.level_icon+' '+d.level_label+'</span></div>';
+            const m=d.dimensions||{};
+            h+='<table class="result-table"><tr><th>维度</th><th>得分</th><th>详情</th></tr>';
+            if(m.growth_rate)h+='<tr><td>发布增速</td><td>'+m.growth_rate.score+'/100</td><td>'+m.growth_rate.label+'</td></tr>';
+            if(m.multi_account)h+='<tr><td>多账号集中</td><td>'+m.multi_account.score+'/100</td><td>'+m.multi_account.label+'</td></tr>';
+            if(m.avg_likes_anomaly)h+='<tr><td>点赞异动</td><td>'+m.avg_likes_anomaly.score+'/100</td><td>'+m.avg_likes_anomaly.label+'</td></tr>';
+            h+='</table>';
+            if(d.suggestions){h+='<div class="result-area"><h3>建议</h3>';d.suggestions.forEach(s=>{h+='<div class="result-block">'+s+'</div>';});h+='</div>';}
+            h+='</div>';div.innerHTML=h;
+        }
+
+        function renderGap(d,div){
+            let h='<div class="card anim-rise"><div class="card-title">🧩 差异化缺口分析</div><div class="card-subtitle">'+d.keyword+' · '+d.total_notes+' 条样本</div>';
+            [['red_sea','红海 · 竞争激烈','var(--accent)','🔴'],['mid_sea','中等 · 有机会','var(--yellow)','🟡'],['blue_sea','蓝海 · 有潜力','var(--blue)','🔵']].forEach(s=>{
+                const items=d[s[0]];
+                if(items&&items.length){h+='<div class="result-area"><h3>'+s[3]+' '+s[1]+'</h3>';items.slice(0,6).forEach(r=>{h+='<div class="result-block" style="border-left:3px solid '+s[2]+';"><strong>'+r.topic+'</strong> <span style="color:var(--text3);">'+(r.ratio*100).toFixed(0)+'%</span></div>';});h+='</div>';}
+            });
+            if(d.suggestions&&d.suggestions.length){h+='<div class="result-area"><h3>💡 蓝海方向建议</h3>';d.suggestions.forEach(s=>{h+='<div class="result-block"><strong>'+s.title+'</strong><br><span style="color:var(--text3);font-size:13px;">'+s.reason+'</span><br>🎯 '+s.target+' · ⚡ '+s.estimated_difficulty+'</div>';});h+='</div>';}
+            h+='</div>';div.innerHTML=h;
+        }
+
+        function renderBiz(d,div){
+            let h='<div class="card anim-rise"><div class="card-title">💼 商业模式拆解</div><div class="card-subtitle">'+d.account_name+' · '+d.total_notes+' 条笔记</div>';
+            h+='<div style="text-align:center;padding:12px 0 20px;color:var(--text2);font-family:Plus Jakarta Sans,sans-serif;">主要变现: <strong style="color:var(--text);font-weight:600;">'+d.primary_model+'</strong> &nbsp;·&nbsp; 多样化 '+(d.model_diversity*100).toFixed(0)+'%</div>';
+            const mm=d.monetization||{},cc={'带货电商':'red','私域引流':'blue','品牌广告':'yellow','知识付费':'green','无明显变现':''};
+            h+='<table class="result-table"><tr><th>方式</th><th>笔记数</th><th>占比</th><th style="width:40%;">分布</th></tr>';
+            for(const[n,info]of Object.entries(mm)){if(info.count>0||n==='无明显变现'){const p=(info.ratio*100).toFixed(0),c=cc[n]||'';h+='<tr><td>'+n+'</td><td>'+info.count+'条</td><td>'+p+'%</td><td><div class="progress-bar"><div class="fill fill-'+c+'" style="width:'+p+'%;"></div></div></td></tr>';}}
+            h+='</table>';
+            h+='<div class="result-area"><div class="result-block">'+d.summary+'</div></div>';
+            if(d.opportunities){h+='<div class="result-area"><h3>🎯 机会点</h3>';d.opportunities.forEach(o=>{h+='<div class="result-block">— '+o+'</div>';});h+='</div>';}
+            h+='</div>';div.innerHTML=h;
+        }
+    </script>
+</body>
+</html>

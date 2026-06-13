@@ -61,7 +61,7 @@ python web.py
 ### 3. 默认密钥
 
 ```
-xiaohongshu2024
+
 ```
 
 > 修改 `.env` 文件中的 `ACCESS_KEY` 可自定义密钥。
